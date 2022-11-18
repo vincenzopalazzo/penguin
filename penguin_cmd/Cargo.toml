@@ -1,0 +1,13 @@
+[package]
+name = "penguin_cmd"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rio_rt = { version = "0.1.0-alpha.2" }
+clap = "4.0.9"
+log = "0.4"
+env_logger = "0.9.1"
+surf = { version = "2.3.2", features = [ "h1-client" ] }
+penguin_hackmd = { path = "../penguin_hackmd" }
+penguin_scrap = { path = "../penguin_scrap" }

@@ -5,6 +5,8 @@ use surf;
 pub mod model;
 use model::NewNote;
 
+use crate::model::NewNoteResp;
+
 pub struct HackmdAPI {
     token: String,
     team: bool,
@@ -28,11 +30,15 @@ impl HackmdAPI {
         return base.to_owned();
     }
 
-    pub async fn new_note(&self, opts: &NewNote) -> Result<(), Self::Err> {
+    pub async fn new_note(&self, opts: &NewNote) -> Result<NewNoteResp, Self::Err> {
         let base = self.build_base_url();
         let url = format!("{}/notes", base);
-        let body_str = serde_json::to_string(opts).unwrap();
-        surf::post(url).body(body_str).await?;
-        Ok(())
+        let mut resp = surf::post(url)
+            .body_json(opts)
+            .unwrap()
+            .header("Authorization", format!("Bearer {}", self.token))
+            .await?;
+        let resp: NewNoteResp = resp.body_json().await.unwrap();
+        Ok(resp)
     }
 }

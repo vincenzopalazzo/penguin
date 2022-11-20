@@ -19,10 +19,47 @@
 ## Table of Content
 
 - Introduction
+- How to use
 
 
 ## Introduction
 
+Developed as part of the Rust Async WG wile @vincenzopalazzo was onboarding in the async programming in rust concept. The tool is developed as a 
+proof of concept for the Async Runtime [Rio](https://github.com/vincenzopalazzo/rio) that is a tiny async runtime developed during the Async WG onboarding.
+
 Why the penguin name?
 
 >The answer to every problem involved penguins. – Rick Riordan
+
+## How to use
+
+There are two simple steps
+
+1. Create your `triage.json` file from the following template:
+
+``` json
+{
+    "team": "async-wg",
+    "git": {
+        "owner": "rust-lang",
+        "repo": "rust",
+        "labels": ["A-async-await"],
+        "since": "2022-11-7T19:27:47Z"
+    },
+    "hackmd": {
+        "token": "<TOKEN>",
+        "team": false
+    }
+}
+```
+You can generate the hackmd token from the [following docs](https://hackmd.io/@hackmd-api/developer-portal/https:%2F%2Fhackmd.io%2F@hackmd-api%2Fhow-to-issue-an-api-token)
+
+
+2. Run the following command and start your triage meeting
+
+```
+➜  penguin git:(main) ✗ cargo run -- -c triage.json
+    Finished dev [unoptimized + debuginfo] target(s) in 0.19s
+     Running `target/debug/penguin_cmd -c triage.json`
+Triage Hackmd available at: https://hackmd.io/@vincenzopalazzo/HytqApv8s
+```

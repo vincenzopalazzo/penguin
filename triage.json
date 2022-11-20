@@ -3,6 +3,11 @@
     "git": {
         "owner": "rust-lang",
         "repo": "rust",
-        "labels": [],
+        "labels": ["A-async-await"],
+        "since": "2022-11-7T19:27:47Z"
+    },
+    "hackmd": {
+        "token": "<TOKEN>",
+        "team": false
     }
 }

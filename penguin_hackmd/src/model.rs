@@ -1,8 +1,9 @@
 //! API model for the hackmd API.
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize)]
 pub struct NewNote {
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub title: String,
     pub content: String,
     #[serde(rename = "readPermission")]
@@ -23,4 +24,10 @@ impl NewNote {
             comment_permission: "everyone".to_owned(),
         }
     }
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct NewNoteResp {
+    #[serde(rename = "publishLink")]
+    pub publish_link: String,
 }

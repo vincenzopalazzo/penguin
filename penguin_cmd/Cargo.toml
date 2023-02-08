@@ -7,7 +7,7 @@ edition = "2021"
 rio_rt = { version = "0.1.0-alpha.2" }
 log = "0.4"
 env_logger = "0.9.1"
-surf = { version = "2.3.2", features = [ "h1-client" ] }
+surf = { version = "2.3.2", features = [ "curl-client" ] }
 penguin_hackmd = { path = "../penguin_hackmd" }
 penguin_scrap = { path = "../penguin_scrap" }
 clap = { version = "4.0.26", features = ["derive"] }

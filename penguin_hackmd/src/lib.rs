@@ -1,4 +1,5 @@
 //! API interface for hackmd.
+#![allow(incomplete_features)]
 #![feature(inherent_associated_types)]
 use surf;
 
@@ -38,7 +39,7 @@ impl HackmdAPI {
             .unwrap()
             .header("Authorization", format!("Bearer {}", self.token))
             .await?;
-        let resp: NewNoteResp = resp.body_json().await.unwrap();
+        let resp: NewNoteResp = resp.body_json().await?;
         Ok(resp)
     }
 }

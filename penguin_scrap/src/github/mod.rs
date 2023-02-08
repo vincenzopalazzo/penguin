@@ -75,8 +75,8 @@ impl Extractor for GithubExtractor {
                 let datetime: DateTime<Utc> = now.into();
                 let formatter = MDPrinter::new(
                     datetime.format("%d/%m/%Y").to_string().as_str(),
-                    &self.since,
                     &self.team,
+                    &self.labels,
                 );
                 formatter.printify(out)
             }

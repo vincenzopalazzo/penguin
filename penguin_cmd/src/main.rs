@@ -1,8 +1,10 @@
+#![allow(incomplete_features)]
 #![feature(async_fn_in_trait)]
 #![feature(associated_type_defaults)]
 #![feature(inherent_associated_types)]
 use async_std::fs;
 use clap::Parser;
+use log::error;
 use penguin_hackmd::model::NewNote;
 use penguin_hackmd::HackmdAPI;
 use penguin_scrap::github::model::NewIssue;
@@ -44,7 +46,9 @@ fn main() {
         let github = GithubExtractor::new(&conf);
         let hackmd_api = HackmdAPI::new(&conf.hackmd.token, conf.hackmd.team);
 
-        run(&github, &hackmd_api).await.unwrap();
+        if let Err(err) = run(&github, &hackmd_api).await {
+            error!("{:?}", err);
+        }
     });
 
     rio::wait();

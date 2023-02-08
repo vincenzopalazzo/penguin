@@ -28,7 +28,7 @@ pub trait Printer {
     type Input = String;
 
     /// Build a new printer!
-    fn new(created: &str, since: &str, team: &str) -> Self;
+    fn new(created: &str, team: &str, labels: &Vec<String>) -> Self;
 
     /// Take an input the content that can be
     /// the result of a API call and printify

@@ -31,6 +31,19 @@ impl Printer for MDPrinter {
         content += "\n\n";
         content += "## New Issues\n";
         for issue in issues {
+            let mut labels = String::new();
+            for label in &self.labels {
+                if issue.with_label(&label) {
+                    labels += format!("**{label}**,").as_str();
+                }
+            }
+
+            // FIXME: this is an hack we should improve
+            // the github API usage
+            if labels.is_empty() {
+                continue;
+            }
+
             content += format!(
                 "  - [{}]({}) in date {}\n",
                 issue.title, issue.html_url, issue.created_at
@@ -38,11 +51,7 @@ impl Printer for MDPrinter {
             .as_str();
 
             content += "    - with labels: ";
-            for label in &self.labels {
-                if issue.with_label(&label) {
-                    content += format!("**{label}**,").as_str();
-                }
-            }
+            content += labels.as_str();
             content = content.strip_suffix(",").unwrap().to_string();
             content += "\n";
             content += format!("    - assigned to {}\n", issue.assigned_to_str()).as_str();

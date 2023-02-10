@@ -3,6 +3,7 @@
 #![feature(associated_type_defaults)]
 #![feature(inherent_associated_types)]
 use async_std::fs;
+use chrono::{DateTime, Utc};
 use clap::Parser;
 use log::error;
 use penguin_hackmd::model::NewNote;
@@ -12,6 +13,7 @@ use penguin_scrap::github::GithubExtractor;
 use penguin_scrap::model::TriageConf;
 use penguin_scrap::{Extractor, PrintFormat};
 use rio_rt::runitime as rio;
+use std::time::SystemTime;
 use surf;
 
 mod cmd;
@@ -36,18 +38,30 @@ async fn read_conf(path: &str) -> TriageConf {
     json
 }
 
+async fn update_conf(path: &str, conf: TriageConf) {
+    let json_conf = serde_json::to_string_pretty(&conf).unwrap();
+    if let Err(err) = fs::write(path, json_conf).await {
+        error!("{err}");
+    }
+}
+
 fn main() {
     env_logger::init();
     let args = Args::parse();
 
     rio::block_on(async move {
-        let conf = read_conf(&args.conf).await;
+        let mut conf = read_conf(&args.conf).await;
 
         let github = GithubExtractor::new(&conf);
         let hackmd_api = HackmdAPI::new(&conf.hackmd.token, conf.hackmd.team);
 
         if let Err(err) = run(&github, &hackmd_api).await {
             error!("{:?}", err);
+        } else {
+            let now = SystemTime::now();
+            let datetime: DateTime<Utc> = now.into();
+            conf.git.since = datetime.to_rfc3339().to_string();
+            update_conf(&args.conf, conf).await;
         }
     });
 

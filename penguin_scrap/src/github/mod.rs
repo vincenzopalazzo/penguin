@@ -50,6 +50,18 @@ impl GithubExtractor {
         *base_url += format!("?labels={labels}&since={}", self.since).as_str();
         debug!("URL with filtering {base_url}");
     }
+
+    async fn perform_request<T: serde::de::DeserializeOwned>(
+        &self,
+        base_url: &mut String,
+    ) -> Result<T, surf::Error> {
+        self.apply_filers(base_url);
+        let mut res = surf::get(base_url).await?;
+        let body = res.body_string().await?.clone();
+        trace!("API response: {body}");
+        let res: T = serde_json::from_str(&body).unwrap();
+        Ok(res)
+    }
 }
 
 impl Extractor for GithubExtractor {
@@ -60,12 +72,11 @@ impl Extractor for GithubExtractor {
         info!("Fetch new issue from Github");
         let api_url = "https://api.github.com/repos";
         let mut base_url = format!("{api_url}/{}/{}/issues", self.owner, self.repo);
-        self.apply_filers(&mut base_url);
-        let mut res = surf::get(base_url).await?;
-        let body = res.body_string().await?;
-        trace!("API response: {body}");
-        let our: Vec<NewIssue> = serde_json::from_str(&body).unwrap();
-        Ok(our)
+        let mut issues: Vec<NewIssue> = self.perform_request(&mut base_url).await?;
+        let mut base_url = format!("{api_url}/{}/{}/pulls", self.owner, self.repo);
+        let mut prs: Vec<NewIssue> = self.perform_request(&mut base_url).await?;
+        issues.append(&mut prs);
+        Ok(issues)
     }
 
     async fn printify(&self, out: &Self::Output, format: PrintFormat) -> String {
@@ -74,7 +85,7 @@ impl Extractor for GithubExtractor {
                 let now = SystemTime::now();
                 let datetime: DateTime<Utc> = now.into();
                 let formatter = MDPrinter::new(
-                    datetime.format("%d/%m/%Y").to_string().as_str(),
+                    datetime.format("%a %b %e %T %Y").to_string().as_str(),
                     &self.team,
                     &self.labels,
                 );

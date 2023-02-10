@@ -1,13 +1,13 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub struct TriageConf {
     pub team: String,
     pub git: GitConf,
     pub hackmd: HackmdConf,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub struct GitConf {
     pub owner: String,
     pub repo: String,
@@ -15,7 +15,7 @@ pub struct GitConf {
     pub since: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub struct HackmdConf {
     pub token: String,
     pub team: bool,

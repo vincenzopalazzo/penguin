@@ -19,8 +19,8 @@ impl NewNote {
         NewNote {
             title: String::new(),
             content: content.to_owned(),
-            read_permission: "everyone".to_owned(),
-            write_permission: "everyone".to_owned(),
+            read_permission: "guest".to_owned(),
+            write_permission: "guest".to_owned(),
             comment_permission: "everyone".to_owned(),
         }
     }

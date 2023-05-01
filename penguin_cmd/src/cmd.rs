@@ -8,4 +8,6 @@ pub struct Args {
     /// configuration file
     #[arg(short, long)]
     pub conf: String,
+    #[arg(short, long, default_value = "false")]
+    pub dry_run: bool,
 }

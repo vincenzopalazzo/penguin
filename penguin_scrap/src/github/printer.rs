@@ -37,12 +37,10 @@ impl Printer for MDPrinter {
                     labels += format!("**{label}**,").as_str();
                 }
             }
-
-            // FIXME: this is an hack we should improve
-            // the github API usage
-            if labels.is_empty() {
-                continue;
-            }
+            debug_assert!(
+                !labels.is_empty(),
+                "the labels that we are looking for are not in this issue!"
+            );
 
             content += format!(
                 "  - [{}]({}) in date {}\n",

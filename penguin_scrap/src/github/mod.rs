@@ -20,12 +20,14 @@ use printer::MDPrinter;
 
 use self::model::NewIssue;
 
+#[derive(Clone, Debug)]
 pub struct GithubExtractor {
     team: String,
     owner: String,
     repo: String,
     since: String,
     labels: Vec<String>,
+    exclude: Vec<String>,
 }
 
 impl GithubExtractor {
@@ -37,25 +39,22 @@ impl GithubExtractor {
             repo: conf.git.repo.to_owned(),
             since: conf.git.since.to_owned(),
             labels: conf.git.labels.to_owned(),
+            exclude: conf.git.exclude.to_owned(),
         }
     }
 
-    fn apply_filers(&self, base_url: &mut String) {
-        let mut labels = String::new();
-        self.labels
-            .iter()
-            .for_each(|label| labels += &format!("{label},"));
-        debug!("Filter labels: {labels} for since {}", self.since);
-        labels = labels.strip_suffix(',').unwrap_or(&labels).to_owned();
-        *base_url += format!("?labels={labels}&since={}", self.since).as_str();
+    fn apply_filers(&self, base_url: &mut String, label: &str) {
+        debug!("Filter: {label} for since {}", self.since);
+        *base_url += format!("?labels={label}&since={}", self.since).as_str();
         debug!("URL with filtering {base_url}");
     }
 
     async fn perform_request<T: serde::de::DeserializeOwned>(
         &self,
+        label: &str,
         base_url: &mut String,
     ) -> Result<T, surf::Error> {
-        self.apply_filers(base_url);
+        self.apply_filers(base_url, label);
         let mut res = surf::get(base_url).await?;
         let body = res.body_string().await?;
         trace!("API response: {body}");
@@ -71,13 +70,26 @@ impl Extractor for GithubExtractor {
     async fn search_new(&self) -> Result<Self::Output, Self::Error> {
         debug!("Fetch new issue from Github");
         let api_url = "https://api.github.com/repos";
-        let mut base_url = format!("{api_url}/{}/{}/issues", self.owner, self.repo);
-
-        // GitHub's REST API considers every pull request an issue,
-        // but not every issue is a pull request. For this reason,
-        // "Issues" endpoints may return both issues and pull requests
-        // in the response. You can identify pull requests by the pull_request key.
-        let issues: Vec<NewIssue> = self.perform_request(&mut base_url).await?;
+        let mut issues: Vec<NewIssue> = Vec::new();
+        for label in &self.labels {
+            let mut base_url = format!("{api_url}/{}/{}/issues", self.owner, self.repo);
+            // GitHub's REST API considers every pull request an issue,
+            // but not every issue is a pull request. For this reason,
+            // "Issues" endpoints may return both issues and pull requests
+            // in the response. You can identify pull requests by the pull_request key.
+            let mut issues_marked: Vec<NewIssue> =
+                self.perform_request(label, &mut base_url).await?;
+            // Now we should remove the issue that has the label that we do not want
+            issues_marked.retain(|issue| {
+                for exclude in &self.exclude {
+                    if issue.with_label(exclude) {
+                        return false;
+                    }
+                }
+                true
+            });
+            issues.append(&mut issues_marked);
+        }
         Ok(issues)
     }
 
@@ -93,18 +105,6 @@ impl Extractor for GithubExtractor {
                 );
                 formatter.printify(out)
             }
-        }
-    }
-}
-
-impl Clone for GithubExtractor {
-    fn clone(&self) -> Self {
-        GithubExtractor {
-            team: self.team.to_string(),
-            owner: self.owner.to_string(),
-            repo: self.repo.to_string(),
-            since: self.since.to_owned(),
-            labels: self.labels.clone(),
         }
     }
 }

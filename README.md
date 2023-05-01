@@ -24,7 +24,7 @@
 
 ## Introduction
 
-Developed as part of the Rust Async WG wile @vincenzopalazzo was onboarding in the async programming in rust concept. The tool is developed as a 
+Developed as part of the Rust Async WG while @vincenzopalazzo was onboarding in the async programming in rust concept. The tool is developed as a 
 proof of concept for the Async Runtime [Rio](https://github.com/vincenzopalazzo/rio) that is a tiny async runtime developed during the Async WG onboarding.
 
 Why the penguin name?
@@ -44,7 +44,10 @@ There are two simple steps
         "owner": "rust-lang",
         "repo": "rust",
         "labels": ["A-async-await"],
-        "since": "2022-11-7T19:27:47Z"
+        "exclude": [
+          "AsyncAwait-Triaged"
+        ],
+      "since": "2023-04-01T16:14:37.222558823+00:00"
     },
     "hackmd": {
         "token": "<TOKEN>",
@@ -58,8 +61,8 @@ You can generate the hackmd token from the [following docs](https://hackmd.io/@h
 2. Run the following command and start your triage meeting
 
 ```
-➜  penguin git:(main) ✗ cargo run -- -c triage.json
-    Finished dev [unoptimized + debuginfo] target(s) in 0.19s
-     Running `target/debug/penguin_cmd -c triage.json`
-Triage Hackmd available at: https://hackmd.io/@vincenzopalazzo/HytqApv8s
+➜  penguin git:(main) ✗ rustup default nightly && make install
+➜  penguin git:(macros/fixs) ✗ penguin --config /home/vincent/async-triage.json          
+ The last issue triage was 2023-04-01T16:14:37.222558823+00:00
+✓ Triage Hackmd available at: https://hackmd.io/@vincenzopalazzo/SkBLw_aQh
 ```

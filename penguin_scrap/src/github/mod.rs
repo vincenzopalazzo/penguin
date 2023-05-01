@@ -10,7 +10,7 @@ use crate::model::TriageConf;
 use crate::{Extractor, PrintFormat, Printer};
 use chrono::offset::Utc;
 use chrono::DateTime;
-use log::{debug, info, trace};
+use log::{debug, trace};
 use surf;
 
 pub mod model;
@@ -44,9 +44,9 @@ impl GithubExtractor {
         let mut labels = String::new();
         self.labels
             .iter()
-            .for_each(|label| labels += format!("{label},").as_str());
+            .for_each(|label| labels += &format!("{label},"));
         debug!("Filter labels: {labels} for since {}", self.since);
-        labels = labels.strip_suffix(",").unwrap_or(&labels).to_owned();
+        labels = labels.strip_suffix(',').unwrap_or(&labels).to_owned();
         *base_url += format!("?labels={labels}&since={}", self.since).as_str();
         debug!("URL with filtering {base_url}");
     }
@@ -57,7 +57,7 @@ impl GithubExtractor {
     ) -> Result<T, surf::Error> {
         self.apply_filers(base_url);
         let mut res = surf::get(base_url).await?;
-        let body = res.body_string().await?.clone();
+        let body = res.body_string().await?;
         trace!("API response: {body}");
         let res: T = serde_json::from_str(&body).unwrap();
         Ok(res)
@@ -69,13 +69,15 @@ impl Extractor for GithubExtractor {
     type Error = surf::Error;
 
     async fn search_new(&self) -> Result<Self::Output, Self::Error> {
-        info!("Fetch new issue from Github");
+        debug!("Fetch new issue from Github");
         let api_url = "https://api.github.com/repos";
         let mut base_url = format!("{api_url}/{}/{}/issues", self.owner, self.repo);
-        let mut issues: Vec<NewIssue> = self.perform_request(&mut base_url).await?;
-        let mut base_url = format!("{api_url}/{}/{}/pulls", self.owner, self.repo);
-        let mut prs: Vec<NewIssue> = self.perform_request(&mut base_url).await?;
-        issues.append(&mut prs);
+
+        // GitHub's REST API considers every pull request an issue,
+        // but not every issue is a pull request. For this reason,
+        // "Issues" endpoints may return both issues and pull requests
+        // in the response. You can identify pull requests by the pull_request key.
+        let issues: Vec<NewIssue> = self.perform_request(&mut base_url).await?;
         Ok(issues)
     }
 

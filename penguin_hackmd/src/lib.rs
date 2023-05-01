@@ -1,7 +1,6 @@
 //! API interface for hackmd.
 #![allow(incomplete_features)]
 #![feature(inherent_associated_types)]
-use surf;
 
 pub mod model;
 use model::NewNote;
@@ -28,7 +27,7 @@ impl HackmdAPI {
         if self.team {
             return format!("{base}/teams");
         }
-        return base.to_owned();
+        base.to_string()
     }
 
     pub async fn new_note(&self, opts: &NewNote) -> Result<NewNoteResp, Self::Err> {

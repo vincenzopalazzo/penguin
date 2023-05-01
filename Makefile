@@ -3,12 +3,15 @@ FMT=fmt
 
 OPTIONS=
 
-default: fmt
+default: fmt lint
 	$(CC) build
 	@make example
 
 fmt:
 	$(CC) fmt --all
+
+lint:
+	$(CC) clippy --all --tests
 
 check:
 	$(CC) test --all
@@ -18,3 +21,6 @@ example:
 
 clean:
 	$(CC) clean
+
+install:
+	$(CC) install --locked --path ./penguin_cmd

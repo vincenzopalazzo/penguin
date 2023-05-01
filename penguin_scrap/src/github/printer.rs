@@ -12,7 +12,7 @@ pub struct MDPrinter {
 impl Printer for MDPrinter {
     type Input = Vec<NewIssue>;
 
-    fn new(created: &str, team: &str, labels: &Vec<String>) -> Self {
+    fn new(created: &str, team: &str, labels: &[String]) -> Self {
         MDPrinter {
             created: created.to_owned(),
             team: team.to_owned(),
@@ -33,7 +33,7 @@ impl Printer for MDPrinter {
         for issue in issues {
             let mut labels = String::new();
             for label in &self.labels {
-                if issue.with_label(&label) {
+                if issue.with_label(label) {
                     labels += format!("**{label}**,").as_str();
                 }
             }
@@ -52,7 +52,7 @@ impl Printer for MDPrinter {
 
             content += "    - with labels: ";
             content += labels.as_str();
-            content = content.strip_suffix(",").unwrap().to_string();
+            content = content.strip_suffix(',').unwrap().to_string();
             content += "\n";
             content += format!("    - assigned to {}\n", issue.assigned_to_str()).as_str();
         }

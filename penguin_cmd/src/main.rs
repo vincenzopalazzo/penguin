@@ -1,20 +1,23 @@
 #![allow(incomplete_features)]
+#![feature(lazy_cell)]
 #![feature(async_fn_in_trait)]
 #![feature(associated_type_defaults)]
 #![feature(inherent_associated_types)]
+use std::time::SystemTime;
+
 use async_std::fs;
 use chrono::{DateTime, Utc};
 use clap::Parser;
 use log::error;
+
+use rio_rt::runitime as rio;
+
 use penguin_hackmd::model::NewNote;
 use penguin_hackmd::HackmdAPI;
 use penguin_scrap::github::model::NewIssue;
 use penguin_scrap::github::GithubExtractor;
 use penguin_scrap::model::TriageConf;
 use penguin_scrap::{Extractor, PrintFormat};
-use rio_rt::runitime as rio;
-use std::time::SystemTime;
-use surf;
 
 mod cmd;
 use cmd::Args;
@@ -48,22 +51,24 @@ async fn update_conf(path: &str, conf: TriageConf) {
 fn main() {
     env_logger::init();
     let args = Args::parse();
+    if args.dry_run {
+        println!("is a dry run");
+    }
 
     rio::block_on(async move {
         let mut conf = read_conf(&args.conf).await;
-
+        println!("The last issue triage was {}", conf.git.since);
         let github = GithubExtractor::new(&conf);
         let hackmd_api = HackmdAPI::new(&conf.hackmd.token, conf.hackmd.team);
 
         if let Err(err) = run(&github, &hackmd_api).await {
             error!("{:?}", err);
-        } else {
+        } else if !args.dry_run {
             let now = SystemTime::now();
             let datetime: DateTime<Utc> = now.into();
-            conf.git.since = datetime.to_rfc3339().to_string();
+            conf.git.since = datetime.to_rfc3339();
             update_conf(&args.conf, conf).await;
         }
     });
-
     rio::wait();
 }

@@ -7,7 +7,6 @@ use std::time::SystemTime;
 
 use async_std::fs;
 use chrono::{DateTime, Utc};
-use clap::Parser;
 use log::error;
 
 use rio_rt::runitime as rio;
@@ -54,7 +53,7 @@ async fn update_conf(path: &str, conf: TriageConf) {
 
 fn main() {
     env_logger::init();
-    let args = Args::parse();
+    let args = Args::parse().unwrap();
     rio::block_on(async move {
         let mut spin = term::spinner("Generating new Triage agenda");
         let mut conf = read_conf(&args.conf).await;
@@ -80,8 +79,14 @@ fn main() {
             let now = SystemTime::now();
             let datetime: DateTime<Utc> = now.into();
             conf.git.since = datetime.to_rfc3339();
+
+            conf.git.since = datetime.to_rfc3339();
             update_conf(&args.conf, conf).await;
-            spin.message(result.unwrap());
+            if args.term {
+                term::markdown(&result.unwrap());
+            } else {
+                spin.message(result.unwrap());
+            }
         } else {
             term::markdown(&result.unwrap());
         }

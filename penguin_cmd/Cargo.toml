@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-rio_rt = { path = "../../rio/rt" }
+rio_rt = { git = "https://github.com/vincenzopalazzo/rio.git" }
 log = "0.4"
 env_logger = "0.9.1"
 surf = { version = "2.3.2", features = [ "curl-client" ] }

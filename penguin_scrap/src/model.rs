@@ -12,6 +12,7 @@ pub struct GitConf {
     pub owner: String,
     pub repo: String,
     pub labels: Vec<String>,
+    pub exclude: Vec<String>,
     pub since: String,
 }
 

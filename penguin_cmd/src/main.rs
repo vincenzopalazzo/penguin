@@ -81,8 +81,10 @@ fn main() {
             let datetime: DateTime<Utc> = now.into();
             conf.git.since = datetime.to_rfc3339();
             update_conf(&args.conf, conf).await;
+            spin.message(result.unwrap());
+        } else {
+            term::markdown(&result.unwrap());
         }
-        spin.message(result.unwrap());
         spin.finish();
     });
     rio::wait();

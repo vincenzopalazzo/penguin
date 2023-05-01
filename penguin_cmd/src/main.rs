@@ -18,6 +18,7 @@ use penguin_scrap::github::model::NewIssue;
 use penguin_scrap::github::GithubExtractor;
 use penguin_scrap::model::TriageConf;
 use penguin_scrap::{Extractor, PrintFormat};
+use radicle_term as term;
 
 mod cmd;
 use cmd::Args;
@@ -25,14 +26,17 @@ use cmd::Args;
 async fn run(
     extractor: &impl Extractor<Output = Vec<NewIssue>, Error = surf::Error>,
     hackmd_api: &HackmdAPI,
-) -> Result<(), surf::Error> {
+    dry_run: bool,
+) -> Result<String, surf::Error> {
     let content = extractor.search_new().await?;
     let result = extractor.printify(&content, PrintFormat::Markdown).await;
 
-    let opts = NewNote::new(&result);
-    let res = hackmd_api.new_note(&opts).await?;
-    println!("Triage Hackmd available at: {}", res.publish_link);
-    Ok(())
+    if !dry_run {
+        let opts = NewNote::new(&result);
+        let res = hackmd_api.new_note(&opts).await?;
+        return Ok(format!("Triage Hackmd available at: {}", res.publish_link));
+    }
+    Ok(result)
 }
 
 async fn read_conf(path: &str) -> TriageConf {
@@ -51,24 +55,35 @@ async fn update_conf(path: &str, conf: TriageConf) {
 fn main() {
     env_logger::init();
     let args = Args::parse();
-    if args.dry_run {
-        println!("is a dry run");
-    }
-
     rio::block_on(async move {
+        let mut spin = term::spinner("Generating new Triage agenda");
         let mut conf = read_conf(&args.conf).await;
-        println!("The last issue triage was {}", conf.git.since);
+        term::println(
+            "",
+            format!(
+                "{} {}",
+                term::format::italic("The last issue triage was"),
+                term::format::tertiary(&conf.git.since)
+            ),
+        );
         let github = GithubExtractor::new(&conf);
         let hackmd_api = HackmdAPI::new(&conf.hackmd.token, conf.hackmd.team);
+        if args.dry_run {
+            term::warning("Dry Run, no change will be commited!");
+        }
 
-        if let Err(err) = run(&github, &hackmd_api).await {
-            error!("{:?}", err);
+        let result = run(&github, &hackmd_api, args.dry_run).await;
+        if let Err(err) = &result {
+            spin.error(format!("{:?}", err));
+            return;
         } else if !args.dry_run {
             let now = SystemTime::now();
             let datetime: DateTime<Utc> = now.into();
             conf.git.since = datetime.to_rfc3339();
             update_conf(&args.conf, conf).await;
         }
+        spin.message(result.unwrap());
+        spin.finish();
     });
     rio::wait();
 }

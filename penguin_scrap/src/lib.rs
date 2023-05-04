@@ -1,5 +1,6 @@
 #![allow(incomplete_features)]
 #![feature(async_fn_in_trait)]
+#![feature(impl_trait_in_assoc_type)]
 #![feature(associated_type_defaults)]
 pub mod github;
 pub mod model;
@@ -12,8 +13,8 @@ pub enum PrintFormat {
 /// Generic Extractor from a source that can be a
 /// web API or a File ecc.
 pub trait Extractor {
-    type Output = String;
-    type Error = String;
+    type Output;
+    type Error;
 
     async fn search_new(&self) -> Result<Self::Output, Self::Error>;
 
@@ -25,7 +26,7 @@ pub trait Extractor {
 /// Printer trait that implement the logic
 /// print a return given by an Extractor!
 pub trait Printer {
-    type Input = String;
+    type Input;
 
     /// Build a new printer!
     fn new(created: &str, team: &str, labels: &[String]) -> Self;
@@ -33,5 +34,5 @@ pub trait Printer {
     /// Take an input the content that can be
     /// the result of a API call and printify
     /// in a formatted string.
-    fn printify(&self, content: &Self::Input) -> String;
+    fn printify<'a>(&'a self, content: impl Iterator<Item = &'a Self::Input>) -> String;
 }

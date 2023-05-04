@@ -3,6 +3,7 @@
 //! Grab from Github issue all the new issue that are open from
 //! a specific date, and collect then to generate a report with
 //! a very short summary.
+use std::collections::HashSet;
 use std::time::SystemTime;
 use std::vec::Vec;
 
@@ -64,13 +65,13 @@ impl GithubExtractor {
 }
 
 impl Extractor for GithubExtractor {
-    type Output = Vec<NewIssue>;
+    type Output = HashSet<NewIssue>;
     type Error = surf::Error;
 
     async fn search_new(&self) -> Result<Self::Output, Self::Error> {
         debug!("Fetch new issue from Github");
         let api_url = "https://api.github.com/repos";
-        let mut issues: Vec<NewIssue> = Vec::new();
+        let mut issues: HashSet<NewIssue> = HashSet::new();
         for label in &self.labels {
             let mut base_url = format!("{api_url}/{}/{}/issues", self.owner, self.repo);
             // GitHub's REST API considers every pull request an issue,
@@ -88,7 +89,7 @@ impl Extractor for GithubExtractor {
                 }
                 true
             });
-            issues.append(&mut issues_marked);
+            issues.extend::<HashSet<NewIssue>>(HashSet::from_iter(issues_marked.iter().cloned()));
         }
         Ok(issues)
     }
@@ -103,7 +104,7 @@ impl Extractor for GithubExtractor {
                     &self.team,
                     &self.labels,
                 );
-                formatter.printify(out)
+                formatter.printify(out.iter())
             }
         }
     }

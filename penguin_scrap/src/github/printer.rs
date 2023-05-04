@@ -10,7 +10,7 @@ pub struct MDPrinter {
 }
 
 impl Printer for MDPrinter {
-    type Input = Vec<NewIssue>;
+    type Input = NewIssue;
 
     fn new(created: &str, team: &str, labels: &[String]) -> Self {
         MDPrinter {
@@ -20,7 +20,7 @@ impl Printer for MDPrinter {
         }
     }
 
-    fn printify(&self, issues: &Self::Input) -> String {
+    fn printify<'a>(&'a self, issues: impl Iterator<Item = &'a Self::Input>) -> String {
         let mut content = String::new();
         content += format!("# Triage Meeting {}\n\n", self.created).as_str();
         content += format!("- Owner: {}\n", self.team).as_str();

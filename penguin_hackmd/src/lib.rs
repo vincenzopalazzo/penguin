@@ -1,6 +1,7 @@
 //! API interface for hackmd.
 #![allow(incomplete_features)]
 #![feature(inherent_associated_types)]
+#![feature(impl_trait_in_assoc_type)]
 
 pub mod model;
 use model::NewNote;

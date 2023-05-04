@@ -1,8 +1,9 @@
 use core::fmt;
+use std::hash::Hash;
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NewIssue {
     pub html_url: String,
     pub number: u64,
@@ -32,12 +33,26 @@ impl NewIssue {
     }
 }
 
+impl Eq for NewIssue {}
+
+impl PartialEq for NewIssue {
+    fn eq(&self, other: &Self) -> bool {
+        self.html_url == other.html_url
+    }
+}
+
+impl Hash for NewIssue {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.html_url.hash(state);
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct IssueLabel {
     name: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct IssueAssigned {
     login: String,
 }

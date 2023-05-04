@@ -3,6 +3,7 @@
 #![feature(async_fn_in_trait)]
 #![feature(associated_type_defaults)]
 #![feature(inherent_associated_types)]
+use std::collections::HashSet;
 use std::time::SystemTime;
 
 use async_std::fs;
@@ -23,7 +24,7 @@ mod cmd;
 use cmd::Args;
 
 async fn run(
-    extractor: &impl Extractor<Output = Vec<NewIssue>, Error = surf::Error>,
+    extractor: &impl Extractor<Output = HashSet<NewIssue>, Error = surf::Error>,
     hackmd_api: &HackmdAPI,
     dry_run: bool,
 ) -> Result<String, surf::Error> {

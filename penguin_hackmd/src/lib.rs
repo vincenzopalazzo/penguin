@@ -14,7 +14,7 @@ pub struct HackmdAPI {
 }
 
 impl HackmdAPI {
-    type Err = surf::Error;
+    pub type Err = surf::Error;
 
     pub fn new(token: &str, team: bool) -> Self {
         HackmdAPI {
